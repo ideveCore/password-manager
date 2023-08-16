@@ -23,9 +23,17 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Gtk, Gio, Adw
+from gi.repository import Adw, Gio, Gtk
 from .window import PasswordManagerWindow
 from .define import APP_ID
+from .db import Query_builder, Gda_setup
+
+db = Gda_setup()
+db.setup()
+# Gda_setup().query('test')
+query = Query_builder()
+query.with_id(0)
+db.query(query.build())
 
 
 class PasswordManagerApplication(Adw.Application):

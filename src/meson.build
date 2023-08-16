@@ -38,6 +38,7 @@ gnome.compile_resources('password-manager',
 password_manager_sources = [
   '__init__.py',
   'components/shortcuts/shortcuts.py',
+  'db.py',
   'main.py',
   'window.py',
 ]
