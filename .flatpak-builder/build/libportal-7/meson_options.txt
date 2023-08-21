@@ -1,0 +1,12 @@
+option('backends', type: 'array', choices: ['gtk3', 'gtk4', 'qt5'], value: ['gtk3', 'gtk4', 'qt5'],
+  description : 'A list of portal backends to build')
+option('portal-tests', type: 'boolean', value: false,
+  description : 'Build portal tests of each backend')
+option('introspection', type: 'boolean', value: true,
+  description: 'Generate GObject introspection files')
+option('vapi', type: 'boolean', value: true,
+  description : 'Generate Vala bindings')
+option('docs', type: 'boolean', value: true,
+  description : 'Build API reference with gi-docgen')
+option('tests', type: 'boolean', value: true,
+  description : 'Build unit tests')

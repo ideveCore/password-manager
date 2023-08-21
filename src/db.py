@@ -1,11 +1,18 @@
 from __future__ import annotations
-from typing import Union, Any, Dict, List
+from typing import Optional, Union, Any, Dict, List
 
 import gi
 gi.require_version('Gda', '6.0') 
 from gi.repository.Gda import Config, Connection, SqlBuilder, SqlOperatorType, SqlStatementType, Statement
 from gi.repository.Gio import Settings
 from gi.repository import GLib
+
+class Db_item:
+    def __init__(self, id: int, name: str, master_password: str):
+        self.id = id
+        self.name = name
+        self.master_password = master_password
+
 
 class Password_manager_query:
     statement: Statement = None
@@ -72,6 +79,26 @@ class Gda_setup():
                 )
             """
         )
+    def save(self, db_item: Db_item) -> Optional[Db_item]:
+        if not self._connection.is_opened(): return None
+        
+        builder = SqlBuilder.new(
+            stmt_type = SqlStatementType.INSERT
+        )
+        builder.set_table('user')
+        builder.builder.add_field_value_as_gvalue('name', db_item.name)
+        builder.builder.add_field_value_as_gvalue('master_password', db_item.master_password)
+        builder.set_where(
+          builder.add_cond(
+            SqlOperatorType.EQ,
+            builder.add_field_id('id', 'user'),
+            add_expr_value(builder, db_item.id),
+            0,
+          ),
+        );
+
+        self._connection.statement_execute_non_select(builder.get_statement(), None);
+        return db_item;
     def query(self, password_manager_query: Password_manager_query) -> Union[Dict[Any, Any], None]:
         if not self._connection.is_opened(): return None
         dm = self._connection.statement_execute_select(password_manager_query.statement, None)

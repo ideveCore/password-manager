@@ -16,9 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+import asyncio
 import gi
-gi.require_version('Gda', '6.0') 
-from gi.repository import Adw, Gda, Gtk
+gi.require_version('Gda', '6.0')
+from gi.repository import Adw, Gio, Gtk
 from .components import PasswordManagerShortcutsWindow
 from .define import PROFILE
 
