@@ -3,12 +3,12 @@ from typing import Optional, Union, Any, Dict, List
 
 import gi
 gi.require_version('Gda', '6.0') 
-from gi.repository.Gda import Config, Connection, SqlBuilder, SqlOperatorType, SqlStatementType, Statement, StatementSqlFlag
+from gi.repository.Gda import Config, Connection, SqlBuilder, SqlOperatorType, SqlStatementType, Statement
 from gi.repository.Gio import Settings
 from gi.repository import GLib
 
 class Db_item:
-    def __init__(self, id: Union[int, None], name: str, master_password: str):
+    def __init__(self, id: int, name: str, master_password: str):
         self.id = id
         self.name = name
         self.master_password = master_password
@@ -20,7 +20,11 @@ class Password_manager_query:
         self.statement = statement
 
 def add_expr_value(builder: SqlBuilder, value: Any) -> float:
-    return builder.add_expr_value(value)
+    try:
+        if len(builder.add_expr_value) == 1:
+            return builder.add_expr_value(value)
+    except Exception as error:
+        return builder.add_expr_value(None, value)
 
 class Query_builder:
     _builder: SqlBuilder
@@ -36,13 +40,9 @@ class Query_builder:
 
         self._builder.select_add_target('user', None)
 
-    def get_all(self):
-        print(self._builder.get_statement())
-        return self
-
-    def with_id(self, id=None):
-        if id is not None:
-            return self._conditions.append(
+    def with_id(self, id):
+        if id:
+            self._conditions.append(
                 self._builder.add_cond(
                     SqlOperatorType.EQ,
                     self._builder.add_field_id('id', 'user'),
@@ -100,19 +100,13 @@ class Gda_setup():
         return item
 
 
-    def query(self, password_manager_query: Password_manager_query) -> Union[List[Db_item], None]:
+    def query(self, password_manager_query: Password_manager_query) -> Union[Dict[Any, Any], None]:
         if not self._connection.is_opened(): return None
-        # print(f'{password_manager_query.statement.to_sql_extended(self._connection, None, StatementSqlFlag.PRETTY)}');
         dm = self._connection.statement_execute_select(password_manager_query.statement, None)
         iter = dm.create_iter()
         itemList = []
+        print(iter.get_value_for_field('id'))
 
-        while (iter.move_next()):
-            id = iter.get_value_for_field('id')
-            name  = iter.get_value_for_field('name')
-            master_password = iter.get_value_for_field('master_password')
-
-            itemList.append(Db_item(id=id, name=name, master_password=master_password))
-
-        return itemList
+        # while (iter.move_next()):
+        #     print('test')
 
