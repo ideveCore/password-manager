@@ -13,7 +13,6 @@ class Db_item:
         self.name = name
         self.master_password = master_password
 
-
 class Password_manager_query:
     statement: Statement = None
     def __init__(self, statement: Statement):
@@ -99,6 +98,17 @@ class Gda_setup():
         
         return item
 
+    def delete(self, id: int) -> None:
+        if not self._connection.is_opened(): return None
+        builder = SqlBuilder.new(
+            stmt_type = SqlStatementType.DELETE
+        )
+
+        builder.set_table('user')
+        builder.set_where(
+            builder.add_cond(SqlOperatorType.EQ, builder.add_field_id('id', 'user'), add_expr_value(builder, id), 0),
+        )
+        self._connection.statement_execute_non_select(builder.get_statement(), None)
 
     def query(self, password_manager_query: Password_manager_query) -> Union[List[Db_item], None]:
         if not self._connection.is_opened(): return None

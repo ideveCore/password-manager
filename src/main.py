@@ -31,9 +31,14 @@ from .db import Query_builder, Gda_setup, Db_item
 db = Gda_setup()
 db.setup()
 
-db_item = Db_item(id = None, name = 'idevecore', master_password = 'master1234')
+# db_item = Db_item(id = None, name = 'idevecore', master_password = 'master1234')
 # Gda_setup().query('test')
-item = db.save(db_item)
+# item = db.save(db_item)1
+# db.delete(2)
+# db.delete(3)
+# db.delete(4)
+# db.delete(5)
+# db.delete(6)
 
 # print(item.name)
 # query = Query_builder()
@@ -47,7 +52,6 @@ item = db.save(db_item)
 query = Query_builder()
 query.get_all()
 listitem = db.query(query.build())
-print(listitem)
 
 for item in listitem:
     print(item.id)
