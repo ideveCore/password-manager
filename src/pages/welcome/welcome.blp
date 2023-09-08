@@ -1,0 +1,22 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $WelcomePage : Adw.Bin {
+  Adw.Clamp {
+    orientation: vertical;
+    Adw.StatusPage {
+      hexpand: true;
+      vexpand: true;
+      icon-name: 'io.github.idevecore.PasswordManager.Devel';
+      title: _('Welcome to Password Manaeger');
+      description: _('You do not have an account in this application, to continue you must register...');
+      child: Gtk.Button {
+        styles ['pill', 'suggested-action']
+        halign: center;
+        label: _("Get start");
+        action-name: 'welcome.open-register-dialog';
+      };
+    }
+  }
+}
+
