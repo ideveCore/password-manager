@@ -27,6 +27,9 @@ else
   application_id = base_id
 endif
 
+prefix = get_option('prefix')
+datadir = prefix / get_option('datadir')
+
 conf = configuration_data()
 conf.set('PYTHON', python.find_installation('python3').full_path())
 conf.set('PROFILE', profile)

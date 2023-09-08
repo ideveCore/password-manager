@@ -25,45 +25,19 @@ gi.require_version('Adw', '1')
 
 from gi.repository import Adw, Gio, Gtk
 from .window import PasswordManagerWindow
-from .define import APP_ID
-from .db import Query_builder, Gda_setup, Db_item
+from .pages import WelcomePage
+from .define import APP_ID, RES_PATH
 
-db = Gda_setup()
-db.setup()
-
-# db_item = Db_item(id = None, name = 'idevecore', master_password = 'master1234')
-# Gda_setup().query('test')
-# item = db.save(db_item)1
-# db.delete(2)
-# db.delete(3)
-# db.delete(4)
-# db.delete(5)
-# db.delete(6)
-
-# print(item.name)
-# query = Query_builder()
-# query.with_id(1)
-# listitem = db.query(query.build())
-
-# for item in listitem:
-#     print(item.name)
-
-
-query = Query_builder()
-query.get_all()
-listitem = db.query(query.build())
-
-for item in listitem:
-    print(item.id)
-    print(item.name)
-    print(item.master_password)
 
 class PasswordManagerApplication(Adw.Application):
     """The main application singleton class."""
 
     def __init__(self):
-        super().__init__(application_id=APP_ID,
-                         flags=Gio.ApplicationFlags.DEFAULT_FLAGS)
+        super().__init__(
+            application_id=APP_ID,
+            flags=Gio.ApplicationFlags.DEFAULT_FLAGS
+        )
+        self.set_resource_base_path(RES_PATH)
         self.setup_actions()
 
     def do_activate(self):

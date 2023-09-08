@@ -17,22 +17,26 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import asyncio
+from typing import Dict, Union, List
 import gi
 gi.require_version('Gda', '6.0')
 from gi.repository import Adw, Gio, Gtk
+from .application_data import Application_data
 from .components import PasswordManagerShortcutsWindow
-from .define import PROFILE
+from .pages import WelcomePage
+from .define import PROFILE, RES_PATH
 
-@Gtk.Template(resource_path='/io/github/idevecore/PasswordManager/window.ui')
+@Gtk.Template(resource_path=f'{RES_PATH}/window.ui')
 class PasswordManagerWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'PasswordManagerWindow'
 
-    label = Gtk.Template.Child()
+    __application_data = Application_data().setup()
+    __user_data: Union[None, List] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setup()
+        self._check_users()
 
     def setup(self):
         # set shortcuts window
@@ -41,3 +45,9 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
         # Set devel style
         if PROFILE == 'Devel':
             self.add_css_class('devel')
+
+    def _check_users(self):
+        self.__user_data = self.__application_data.get_user()
+        if not self.__user_data:
+            print('no has users in database')
+            # self.main_leaflet.navigate(Adw.NavigationDirection.FORWARD);

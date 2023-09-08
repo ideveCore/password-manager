@@ -21,6 +21,44 @@ class Password_manager_query:
 def add_expr_value(builder: SqlBuilder, value: Any) -> float:
     return builder.add_expr_value(value)
 
+# =====================
+# QUERy get users
+# ====================
+class Query_user_builder:
+    _builder: SqlBuilder
+    _conditions: List[float]
+    def __init__(self) -> None:
+        self._conditions = [];
+        self._builder = SqlBuilder.new(
+            stmt_type = SqlStatementType.SELECT,    
+        )
+        self._builder.select_add_field('id', 'user', 'id')
+        self._builder.select_add_field('name', 'user', 'name')
+        self._builder.select_add_field('master_password', 'user', 'master_password')
+        self._builder.select_add_target('user', None)
+
+    def get_all(self):
+        return self
+
+    def with_id(self, id=None):
+        if id is not None:
+            return self._conditions.append(
+                self._builder.add_cond(
+                    SqlOperatorType.EQ,
+                    self._builder.add_field_id('id', 'user'),
+                    add_expr_value(self._builder, id),
+                    0,
+                )
+            )
+        return self
+
+    def build(self) -> Password_manager_query:
+        if len(self._conditions) > 0:
+            self._builder.set_where(self._builder.add_cond_v(SqlOperatorType.AND, self._conditions))
+        return Password_manager_query(self._builder.get_statement())
+
+
+
 class Query_builder:
     _builder: SqlBuilder
     _conditions: List[float]
@@ -57,7 +95,7 @@ class Query_builder:
         return Password_manager_query(self._builder.get_statement())
 
 
-class Gda_setup():
+class Database():
     _connection: Connection = None
     def __init__(self):
         self.data_dir = GLib.get_user_config_dir();
