@@ -1,0 +1,24 @@
+using Gtk 4.0;
+
+template $PasswordManagerShortcutsWindow : ShortcutsWindow {
+  modal: true;
+
+  Gtk.ShortcutsSection {
+    section-name: "shortcuts";
+    max-height: 10;
+
+    Gtk.ShortcutsGroup {
+      title: C_("shortcut window", "General");
+
+      Gtk.ShortcutsShortcut {
+        title: C_("shortcut window", "Show Shortcuts");
+        action-name: "win.show-help-overlay";
+      }
+
+      Gtk.ShortcutsShortcut {
+        title: C_("shortcut window", "Quit");
+        action-name: "app.quit";
+      }
+    }
+  }
+}

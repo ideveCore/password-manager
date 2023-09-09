@@ -1,0 +1,46 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $PasswordManagerWindow : Adw.ApplicationWindow {
+  default-width: 800;
+  default-height: 600;
+  width-request: 300;
+  height-request: 500;
+  title: _('Password Manager');
+
+  Gtk.Box {
+    orientation: vertical;
+    Adw.HeaderBar {
+      styles ['flat']
+      centering-policy: strict;
+    }
+    Gtk.Stack pages {
+      hexpand: true;
+      vexpand: true;
+      Gtk.StackPage {
+        name: "welcome";
+        child:
+          $WelcomePage {};
+      }
+    }
+  }
+}
+
+menu primary_menu {
+  section {
+    item {
+      label: _('_Preferences');
+      action: 'app.preferences';
+    }
+
+    item {
+      label: _('_Keyboard Shortcuts');
+      action: 'win.show-help-overlay';
+    }
+
+    item {
+      label: _('_About Password Manager');
+      action: 'app.about';
+    }
+  }
+}

@@ -1,0 +1,6 @@
+data/io.github.idevecore.PasswordManager.desktop.in
+data/io.github.idevecore.PasswordManager.appdata.xml.in
+data/io.github.idevecore.PasswordManager.gschema.xml
+src/main.py
+src/window.py
+src/window.ui
