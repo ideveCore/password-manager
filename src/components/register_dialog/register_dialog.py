@@ -17,10 +17,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 import math, time, secrets
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, Gio, GLib, Gtk
 import pwvalid, binascii
 import argon2
 from ...define import RES_PATH
+from ...db import User_db_item
 
 @Gtk.Template(resource_path=f'{RES_PATH}/components/register_dialog/register_dialog.ui')
 class RegisterDialog(Adw.Window):
@@ -37,6 +38,7 @@ class RegisterDialog(Adw.Window):
     last_name_label = Gtk.Template.Child()
     bar_passwd = Gtk.Template.Child()
     pepper = Gtk.Template.Child()
+    send = Gtk.Template.Child()
 
 
     def __init__(self):
@@ -62,7 +64,6 @@ class RegisterDialog(Adw.Window):
     @Gtk.Template.Callback()
     def _on_passwd_changed(self, _target):
         level = min(math.ceil(len(_target.get_text()) / 5), 20)
-        print(level)
         self.bar_passwd.set_value(math.floor(level));
 
     def _validate_user_data(self):
@@ -106,27 +107,28 @@ class RegisterDialog(Adw.Window):
 
     @Gtk.Template.Callback()
     def _on_submit_user_data(self, _target):
-        # if self._validate_user_data():
-        argon2_type = argon2.Type.ID
-        time_cost = 10
-        memory_cost = 97656
-        parallelism = 5
-        output_len = 64
-        ph = argon2.PasswordHasher(
-            time_cost=time_cost,
-            memory_cost=memory_cost,
-            parallelism=parallelism,
-            hash_len=output_len,
-            type=argon2_type
-        )
-        salt = self.pepper.get_text().encode("utf-8")
-        hash = ph.hash(self.master_password.get_text(), salt=salt)
-        #$argon2id$v=19$m=65536,t=3,p=4$AQIDBAUGBwg$rovfC3g5qNs6Zzy0Q2oiX9sQrM+I92h0UQXFek8uFEs
-        print(hash)
-        # pepper = secrets.token_bytes(4)
-        # pepper_hex = pepper.hex()
-        # print(pepper_hex)
-        # print(int(time.time() * 1000))
+        spinner = Gtk.Spinner.new()
+        spinner.set_spinning(True)
+        self.send.set_sensitive(False)
+        self.send.set_child(spinner)
+
+        if self._validate_user_data():
+            self._credentials = f'First name = {self.first_name.get_text().strip()}\nLast name = {self.last_name.get_text().strip()}\nUsername = {self.username.get_text().strip()}\nEmail = {self.email.get_text().strip()}\nPepper = {self.pepper.get_text().strip()}\nMaster password = {self.master_password.get_text().strip()}\nMaster password tip = {self.tip.get_text().strip()}'
+            dialog_save_credentials = Adw.MessageDialog.new()
+            dialog_save_credentials.set_heading(_('Save credentials'))
+            dialog_save_credentials.set_transient_for(self)
+            dialog_save_credentials.set_body(_("You must keep these credentials in a safe place and keep at least two copies of them. If you lose these credentials, you won't be able to recover your data."))
+            dialog_save_credentials.add_response('save_credentials', _('Save credentials'))
+            dialog_save_credentials.set_response_appearance('save_credentials', Adw.ResponseAppearance.SUGGESTED);
+            dialog_save_credentials.connect('response', self._on_dialog_save_credentials_response)
+            dialog_save_credentials.present()
+        else:
+            self.send.set_label(_('Register'))
+            self.send.set_sensitive(True)
+
+    def _on_dialog_save_credentials_response(self, _dialog, _id):
+        if _id == 'save_credentials':
+            self._save_file_dialog()
 
     @Gtk.Template.Callback()
     def _on_update_pepper(self, _target):
@@ -135,4 +137,57 @@ class RegisterDialog(Adw.Window):
     def _generate_pepper(self):
         pepper = secrets.token_bytes(8)
         return pepper.hex()
+
+    def _save_file_dialog(self):
+        self._dialog = Gtk.FileDialog.new()
+        self._dialog.set_title('Save credentials')
+        self._dialog.set_initial_name('passwdman-credentials.txt')
+        cancellable = Gio.Cancellable.new()
+        self._dialog.save(self, cancellable, self._save_file_response)
+   
+    def _save_file_response(self, _dialog, _task):
+        try:
+            destination_file = _dialog.save_finish(_task)
+            destination_file.replace_contents_async(self._credentials.encode('utf-8'), None, False, Gio.FileCreateFlags.REPLACE_DESTINATION, None, self._on_saved_credentials)
+        except Exception as error:
+            self.send.set_label(_('Register'))
+            self.send.set_sensitive(True)
+
+
+    def _on_saved_credentials(self, _file, _task):
+        result = _file.replace_contents_finish(_task)
+        if result:
+            argon2_type = argon2.Type.ID
+            time_cost = 10
+            memory_cost = 97656
+            parallelism = 5
+            output_len = 64
+            ph = argon2.PasswordHasher(
+                time_cost=time_cost,
+                memory_cost=memory_cost,
+                parallelism=parallelism,
+                hash_len=output_len,
+                type=argon2_type
+            )
+            salt = self.pepper.get_text().encode("utf-8")
+            hash = ph.hash(self.master_password.get_text(), salt=salt)
+            user = User_db_item(
+                id=None,
+                first_name=self.first_name.get_text().strip(),
+                last_name=self.last_name.get_text().strip(),
+                username=self.username.get_text().strip(),
+                email=self.email.get_text().strip(),
+                master_password=hash,
+                master_password_tip=self.tip.get_text().strip(),
+                timestamp=int(time.time() * 1000),
+            )
+
+            print(user.master_password)
+        else:
+            print('Erro in save file')
+
+        self.send.set_label(_('Register'))
+        self.send.set_sensitive(True)
+
+        
 
