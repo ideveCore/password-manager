@@ -7,11 +7,16 @@ from gi.repository.Gda import Config, Connection, SqlBuilder, SqlOperatorType, S
 from gi.repository.Gio import Settings
 from gi.repository import GLib
 
-class Db_item:
-    def __init__(self, id: Union[int, None], name: str, master_password: str):
+class User_db_item:
+    def __init__(self, id: Union[int, None], first_name: str, last_name: str, username: str, email: str, master_password: str, master_password_tip: str, timestamp: int):
         self.id = id
-        self.name = name
+        self.first_name = first_name
+        self.last_name = last_name
+        self.username = username
+        self.email = email
         self.master_password = master_password
+        self.master_password_tip = master_password_tip
+        self.timestamp = timestamp
 
 class Password_manager_query:
     statement: Statement = None
@@ -22,7 +27,7 @@ def add_expr_value(builder: SqlBuilder, value: Any) -> float:
     return builder.add_expr_value(value)
 
 # =====================
-# QUERy get users
+# QUERY get users
 # ====================
 class Query_user_builder:
     _builder: SqlBuilder
@@ -33,8 +38,13 @@ class Query_user_builder:
             stmt_type = SqlStatementType.SELECT,    
         )
         self._builder.select_add_field('id', 'user', 'id')
-        self._builder.select_add_field('name', 'user', 'name')
+        self._builder.select_add_field('first_name', 'user', 'first_name')
+        self._builder.select_add_field('last_name', 'user', 'last_name')
+        self._builder.select_add_field('username', 'user', 'username')
+        self._builder.select_add_field('email', 'user', 'email')
         self._builder.select_add_field('master_password', 'user', 'master_password')
+        self._builder.select_add_field('master_password_tip', 'user', 'master_password_tip')
+        self._builder.select_add_field('timestamp', 'user', 'timestamp')
         self._builder.select_add_target('user', None)
 
     def get_all(self):
@@ -111,29 +121,60 @@ class Database():
             """
                 create table if not exists user
                 (
-                    id integer not null constraint clipboard_pk primary key autoincrement,
-                    name text not null,
-                    master_password text not null
+                    id INTEGER NOT NULL CONSTRAINT user_pk PRIMARY KEY AUTOINCREMENT,
+                    first_name TEXT NOT NULL,
+                    last_name TEXT NOT NULL,
+                    username TEXT UNIQUE NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    master_password TEXT NOT NULL,
+                    master_password_tip TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL
                 )
             """
         )
-    def save(self, db_item: Db_item) -> Optional[Db_item]:
+        # self._connection.execute_non_select_command(
+        #     """
+        #         create table if not exists salts
+        #         (
+        #             id INTEGER NOT NULL CONSTRAINT user_pk PRIMARY KEY AUTOINCREMENT,
+        #             salt TEXT UNIQUE NOT NULL
+        #             user_id INTERGER
+        #         )
+        #     """
+        # )
+
+        self._connection.execute_non_select_command("""
+            create unique index if not exists user_id_uindex on user (id);
+        """);
+    def save_user(self, db_item: User_db_item) -> Optional[User_db_item]:
         if not self._connection.is_opened(): return None
         
         builder = SqlBuilder.new(
             stmt_type = SqlStatementType.INSERT
         )
         builder.set_table('user')
-        builder.add_field_value_as_gvalue('name', db_item.name)
+        builder.add_field_value_as_gvalue('first_name', db_item.first_name)
+        builder.add_field_value_as_gvalue('last_name', db_item.last_name)
+        builder.add_field_value_as_gvalue('username', db_item.username)
+        builder.add_field_value_as_gvalue('email', db_item.email)
         builder.add_field_value_as_gvalue('master_password', db_item.master_password)
+        builder.add_field_value_as_gvalue('master_password_tip', db_item.master_password_tip)
+        builder.add_field_value_as_gvalue('timestamp', db_item.timestamp)
         _, row = self._connection.statement_execute_non_select(builder.get_statement(), None);
         id = row.get_nth_holder(0).get_value();
-        print('id', id)
         if not id:
             return None;
 
-        item = Db_item(id = id, name = db_item.name, master_password=db_item.master_password)
-        
+        item = User_db_item(
+                id=id,
+                first_name=db_item.first_name,
+                last_name=db_item.last_name,
+                username=db_item.username,
+                email=db_item.email,
+                master_password=db_item.master_password,
+                master_password_tip=db_item.master_password_tip,
+                timestamp=db_item.timestamp,
+            )
         return item
 
     def delete(self, id: int) -> None:
@@ -157,10 +198,25 @@ class Database():
 
         while (iter.move_next()):
             id = iter.get_value_for_field('id')
-            name  = iter.get_value_for_field('name')
+            first_name  = iter.get_value_for_field('first_name')
+            last_name = iter.get_value_for_field('last_name')
+            username = iter.get_value_for_field('username')
+            email  = iter.get_value_for_field('email')
             master_password = iter.get_value_for_field('master_password')
+            master_password_tip = iter.get_value_for_field('master_password_tip')
+            timestamp = iter.get_value_for_field('timestamp')
 
-            itemList.append(Db_item(id=id, name=name, master_password=master_password))
+
+            itemList.append(User_db_item(
+                id=id,
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                email=email,
+                master_password=master_password,
+                master_password_tip=master_password_tip,
+                timestamp=timestamp,
+            ))
 
         return itemList
 

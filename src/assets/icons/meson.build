@@ -1,6 +1,6 @@
 install_data(
   [
-    'password_manager.svg',
+    'update-symbolic.svg',
   ],
   install_dir: datadir / 'icons/hicolor/scalable/status',
 )

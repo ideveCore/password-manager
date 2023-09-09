@@ -28,6 +28,7 @@ template $RegisterDialog : Adw.Window {
             valign: center;
             size: 120;
             show-initials: true;
+            margin-top: 10;
             margin-bottom: 10;
           }
           
@@ -71,6 +72,17 @@ template $RegisterDialog : Adw.Window {
               Adw.EntryRow email {
                 title: _("Email");
               }
+              Adw.EntryRow pepper {
+                title: _("Pepper");
+                editable: false;
+                [suffix]
+                Gtk.Button {
+                  halign: center;
+                  valign: center;
+                  icon-name: 'update-symbolic';
+                  clicked => $_on_update_pepper();
+                }
+              }
               Adw.PasswordEntryRow master_password {
                 title: _("Master password");
                 changed => $_on_passwd_changed();
@@ -93,6 +105,7 @@ template $RegisterDialog : Adw.Window {
               halign: center;
               margin-bottom: 10;
               label: _('Register');
+              clicked => $_on_submit_user_data();
             }
           };
         }
