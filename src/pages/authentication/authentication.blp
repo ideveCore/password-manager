@@ -1,0 +1,71 @@
+using Gtk 4.0;
+using Adw 1;
+
+template $AuthenticationPage : Adw.Bin {
+  Adw.Clamp {
+    hexpand: true;
+    vexpand: true;
+    orientation: vertical;
+    Gtk.Box {
+      orientation: vertical;
+      halign: center;
+      valign: center;
+      Adw.Avatar avatar {
+        valign: center;
+        size: 120;
+        show-initials: true;
+        margin-top: 10;
+        text: 'Ideve Core';
+        margin-bottom: 10;
+      }
+      Gtk.Box {
+        halign: center;
+        margin-bottom: 10;
+        orientation: vertical;
+        Label presentation {
+          styles ['title', 'title-1',]
+          wrap: true;
+          wrap-mode: word_char;
+          justify: center;
+          label: 'Hi Ideve welcome back';
+        }
+        Label description {
+          wrap: true;
+          wrap-mode: word_char;
+          justify: center;
+          margin-top: 10;
+          label: 'To access the dashboard, you must authenticate';
+        }
+        Label label_error {
+          styles ['error']
+          wrap: true;
+          visible: false;
+          wrap-mode: word_char;
+          justify: center;
+          margin-top: 10;
+          label: 'error data';
+        }
+
+        Adw.PreferencesGroup {
+          margin-top: 10;
+          Adw.PasswordEntryRow master_password {
+            title: _("Master password");
+          }
+          Adw.PasswordEntryRow pepper {
+            title: _("Pepper");
+          }
+        }
+        Gtk.Button {
+          styles ['suggested-action', 'pill']
+          valign: center;
+          halign: center;
+          margin-top: 20;
+          margin-bottom: 10;
+          label: _('Authentication');
+          clicked => $_on_submit_user_data();
+        }
+      }
+    }
+  }
+}
+

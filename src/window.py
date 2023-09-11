@@ -21,7 +21,6 @@ from typing import Dict, Union, List
 import gi
 gi.require_version('Gda', '6.0')
 from gi.repository import Adw, Gio, Gtk
-from .application_data import Application_data
 from .components import PasswordManagerShortcutsWindow
 from .pages import WelcomePage
 from .define import PROFILE, RES_PATH
@@ -30,12 +29,14 @@ from .define import PROFILE, RES_PATH
 class PasswordManagerWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'PasswordManagerWindow'
 
-    __application_data = Application_data().setup()
-    __user_data: Union[None, List] = None
+    main_leaflet = Gtk.Template.Child()
+    welcome = Gtk.Template.Child()
+    authenticate = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setup()
+        self._application = Gtk.Application.get_default()
         self._check_users()
 
     def setup(self):
@@ -47,7 +48,9 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
             self.add_css_class('devel')
 
     def _check_users(self):
-        self.__user_data = self.__application_data.get_user()
-        if not self.__user_data:
+        if not self._application.user_data:
             print('no has users in database')
+            self.main_leaflet.set_visible_child(self.welcome)
             # self.main_leaflet.navigate(Adw.NavigationDirection.FORWARD);
+        else:
+            self.main_leaflet.set_visible_child(self.authenticate)

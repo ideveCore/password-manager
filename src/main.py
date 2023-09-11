@@ -23,10 +23,12 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
+from typing import Optional, Union, Any, Dict, List
 from gi.repository import Adw, Gio, Gtk
 from .window import PasswordManagerWindow
-from .pages import WelcomePage
+from .pages import WelcomePage, AuthenticationPage
 from .define import APP_ID, RES_PATH
+from .application_data import Application_data, User_db_item
 
 
 class PasswordManagerApplication(Adw.Application):
@@ -38,6 +40,9 @@ class PasswordManagerApplication(Adw.Application):
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS
         )
         self.set_resource_base_path(RES_PATH)
+
+        self.data = Application_data().setup()
+        self.user_data: List[User_db_item] = self.data.get_user()
         self.setup_actions()
 
     def do_activate(self):

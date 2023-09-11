@@ -159,7 +159,7 @@ class Database():
         builder.add_field_value_as_gvalue('email', db_item.email)
         builder.add_field_value_as_gvalue('master_password', db_item.master_password)
         builder.add_field_value_as_gvalue('master_password_tip', db_item.master_password_tip)
-        builder.add_field_value_as_gvalue('timestamp', db_item.timestamp)
+        builder.add_field_value_as_gvalue('timestamp', db_item.timestamp / 1000)
         _, row = self._connection.statement_execute_non_select(builder.get_statement(), None);
         id = row.get_nth_holder(0).get_value();
         if not id:

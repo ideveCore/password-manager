@@ -18,10 +18,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import math, time, secrets
 from gi.repository import Adw, Gio, GLib, Gtk
-import pwvalid, binascii
 import argon2
 from ...define import RES_PATH
 from ...db import User_db_item
+from ...application_data import Application_data
 
 @Gtk.Template(resource_path=f'{RES_PATH}/components/register_dialog/register_dialog.ui')
 class RegisterDialog(Adw.Window):
@@ -33,6 +33,7 @@ class RegisterDialog(Adw.Window):
     username = Gtk.Template.Child()
     email = Gtk.Template.Child()
     master_password = Gtk.Template.Child()
+    repeat_master_password = Gtk.Template.Child()
     tip = Gtk.Template.Child()
     first_name_label = Gtk.Template.Child()
     last_name_label = Gtk.Template.Child()
@@ -45,11 +46,39 @@ class RegisterDialog(Adw.Window):
         super().__init__()
         self._application = Gtk.Application.get_default()
         self.set_transient_for(self._application.get_active_window())
-        self.bar_passwd.add_offset_value("very-weak", 1);
-        self.bar_passwd.add_offset_value("weak", 2);
-        self.bar_passwd.add_offset_value("moderate", 4);
-        self.bar_passwd.add_offset_value("strong", 6);
+        self.bar_passwd.add_offset_value("very-weak", 1)
+        self.bar_passwd.add_offset_value("weak", 2)
+        self.bar_passwd.add_offset_value("moderate", 4)
+        self.bar_passwd.add_offset_value("strong", 6)
         self.pepper.set_text(self._generate_pepper())
+        self._setup_actions()
+
+    def _setup_actions(self):
+        group = Gio.SimpleActionGroup()
+        helper_action = Gio.SimpleAction(name='helper', parameter_type=GLib.VariantType('s'))
+
+        helper_action.connect('activate', self._helper_action)
+
+        group.add_action(helper_action)
+        self.insert_action_group('register', group)
+
+    def _helper_action(self, _action, _parameter):
+        dialog = Adw.MessageDialog.new()
+        dialog.set_transient_for(self)
+        dialog.add_response('ok', _('Ok'))
+        dialog.set_response_appearance('ok', Adw.ResponseAppearance.SUGGESTED);
+        dialog.connect('response', lambda self, _dialog: dialog.close())
+
+        if GLib.Variant.get_string(_parameter) == 'pepper':
+            dialog.set_heading(_('Peppers?'))
+            dialog.set_body(_("""A pepper is a random sequence or value kept secret by the user. 
+The pepper is a unique value that is not stored in the database only in the application session and cannot be changed, if the pepper is lost it is not possible to recover the data.
+The main purpose of a pepper is to add an extra layer of security to password storage."""))
+        elif GLib.Variant.get_string(_parameter) == 'master_password':
+            dialog.set_heading(_('Master password?'))
+            dialog.set_body(_("""A master password if often to protect an application or serving of password manager"""))
+
+        dialog.present()
 
     @Gtk.Template.Callback()
     def _on_first_name_changed(self, _target):
@@ -82,21 +111,22 @@ class RegisterDialog(Adw.Window):
             return False
         else:
             self.username.get_style_context().remove_class('error')
-        try:
-            if not pwvalid.isDeliverable(self.email.get_text().strip()):
-                self.email.get_style_context().add_class('error')
-                return False
-            else:
-                self.email.get_style_context().remove_class('error')
-        except Exception as error:
+        if not '@' in self.email.get_text().strip():
             self.email.get_style_context().add_class('error')
             return False
-
+        else:
+            self.email.get_style_context().remove_class('error')
         if not self.master_password.get_text().strip():
             self.master_password.get_style_context().add_class('error')
             return False
         else:
             self.master_password.get_style_context().remove_class('error')
+        if not self.repeat_master_password.get_text().strip() or not self.repeat_master_password.get_text().strip() == self.master_password.get_text().strip():
+            self.repeat_master_password.get_style_context().add_class('error')
+            return False
+        else:
+            self.repeat_master_password.get_style_context().remove_class('error')
+
         if not self.tip.get_text().strip():
             self.tip.get_style_context().add_class('error')
             return False
@@ -169,8 +199,9 @@ class RegisterDialog(Adw.Window):
                 hash_len=output_len,
                 type=argon2_type
             )
-            salt = self.pepper.get_text().encode("utf-8")
-            hash = ph.hash(self.master_password.get_text(), salt=salt)
+            middle = len(self.pepper.get_text().strip()) // 2
+            passwd = f'{self.pepper.get_text().strip()[:middle]}{self.master_password.get_text().strip()}{self.pepper.get_text().strip()[middle:]}'
+            hash = ph.hash(passwd, salt=self._generate_pepper().encode('utf-8'))
             user = User_db_item(
                 id=None,
                 first_name=self.first_name.get_text().strip(),
@@ -179,15 +210,15 @@ class RegisterDialog(Adw.Window):
                 email=self.email.get_text().strip(),
                 master_password=hash,
                 master_password_tip=self.tip.get_text().strip(),
-                timestamp=int(time.time() * 1000),
+                timestamp=int(time.time()),
             )
 
-            print(user.master_password)
+            data = Application_data().setup()
+            data.save_user(user)
+
         else:
             print('Erro in save file')
 
         self.send.set_label(_('Register'))
         self.send.set_sensitive(True)
-
-        
 

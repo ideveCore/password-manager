@@ -75,16 +75,29 @@ template $RegisterDialog : Adw.Window {
               Adw.EntryRow pepper {
                 title: _("Pepper");
                 editable: false;
-                [suffix]
                 Gtk.Button {
                   halign: center;
                   valign: center;
                   icon-name: 'update-symbolic';
                   clicked => $_on_update_pepper();
                 }
+                Gtk.Button {
+                  halign: center;
+                  valign: center;
+                  icon-name: 'help-about-symbolic';
+                  action-name: 'register.helper';
+                  action-target: "'pepper'";
+                }
               }
               Adw.PasswordEntryRow master_password {
                 title: _("Master password");
+                Gtk.Button {
+                  halign: center;
+                  valign: center;
+                  icon-name: 'help-about-symbolic';
+                  action-name: 'register.helper';
+                  action-target: "'master_password'";
+                }
                 changed => $_on_passwd_changed();
               }
               Adw.PreferencesRow {
@@ -93,6 +106,10 @@ template $RegisterDialog : Adw.Window {
                   min-value: 0;
                   max-value: 6;
                 }
+              }
+
+              Adw.PasswordEntryRow repeat_master_password {
+                title: _("Repeat master password");
               }
               
               Adw.EntryRow tip {
