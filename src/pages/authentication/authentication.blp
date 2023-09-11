@@ -36,15 +36,6 @@ template $AuthenticationPage : Adw.Bin {
           margin-top: 10;
           label: 'To access the dashboard, you must authenticate';
         }
-        Label label_error {
-          styles ['error']
-          wrap: true;
-          visible: false;
-          wrap-mode: word_char;
-          justify: center;
-          margin-top: 10;
-          label: 'error data';
-        }
 
         Adw.PreferencesGroup {
           margin-top: 10;
@@ -54,6 +45,15 @@ template $AuthenticationPage : Adw.Bin {
           Adw.PasswordEntryRow pepper {
             title: _("Pepper");
           }
+        }
+        Label label_error {
+          styles ['error']
+          wrap: true;
+          visible: false;
+          wrap-mode: word_char;
+          justify: center;
+          margin-top: 10;
+          label: 'error data';
         }
         Gtk.Button {
           styles ['suggested-action', 'pill']

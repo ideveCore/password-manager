@@ -188,9 +188,9 @@ The main purpose of a pepper is to add an extra layer of security to password st
         result = _file.replace_contents_finish(_task)
         if result:
             argon2_type = argon2.Type.ID
-            time_cost = 10
-            memory_cost = 97656
-            parallelism = 5
+            time_cost = 20
+            memory_cost = 131072
+            parallelism = 2
             output_len = 64
             ph = argon2.PasswordHasher(
                 time_cost=time_cost,
@@ -215,6 +215,9 @@ The main purpose of a pepper is to add an extra layer of security to password st
 
             data = Application_data().setup()
             data.save_user(user)
+            self._application.settings.set_string('pepper', self.pepper.get_text().strip())
+            self._application.get_active_window().finish_authentication()
+            self.close()
 
         else:
             print('Erro in save file')

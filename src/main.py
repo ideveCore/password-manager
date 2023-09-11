@@ -43,6 +43,7 @@ class PasswordManagerApplication(Adw.Application):
 
         self.data = Application_data().setup()
         self.user_data: List[User_db_item] = self.data.get_user()
+        self.settings = Gio.Settings(APP_ID)
         self.setup_actions()
 
     def do_activate(self):

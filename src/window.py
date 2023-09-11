@@ -32,6 +32,7 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
     main_leaflet = Gtk.Template.Child()
     welcome = Gtk.Template.Child()
     authenticate = Gtk.Template.Child()
+    dashboard = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -54,3 +55,6 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
             # self.main_leaflet.navigate(Adw.NavigationDirection.FORWARD);
         else:
             self.main_leaflet.set_visible_child(self.authenticate)
+
+    def finish_authentication(self):
+        self.main_leaflet.set_visible_child(self.dashboard)

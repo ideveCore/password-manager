@@ -36,6 +36,25 @@ template $PasswordManagerWindow : Adw.ApplicationWindow {
         $AuthenticationPage {}
       }
     }
+    Adw.Leaflet dashboard {
+      hexpand: true;
+      Gtk.Box {
+        hexpand: true;
+        orientation: vertical;
+        Adw.HeaderBar {
+          styles ['flat']
+          title-widget: Label {
+            styles ['title']
+            label: _('Authentication');
+          };
+          centering-policy: strict;
+        }
+
+        Gtk.Label {
+          label: 'dashboard';
+        }
+      }
+    }
   }
 }
 

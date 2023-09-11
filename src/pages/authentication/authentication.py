@@ -34,20 +34,15 @@ class AuthenticationPage(Adw.Bin):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._application = Gtk.Application.get_default()
+        self._setup()
+    
+    def _setup(self):
+        pepper_from_settings = self._application.settings.get_string('pepper') 
+        if pepper_from_settings:
+            self.pepper.set_text(pepper_from_settings)
 
     def _validate_data(self):
-        argon2_type = argon2.Type.ID
-        time_cost = 10
-        memory_cost = 97656
-        parallelism = 5
-        output_len = 64
-        ph = argon2.PasswordHasher(
-            time_cost=time_cost,
-            memory_cost=memory_cost,
-            parallelism=parallelism,
-            hash_len=output_len,
-            type=argon2_type
-        )
+        ph = argon2.PasswordHasher()
         if not self.master_password.get_text().strip():
             self.master_password.get_style_context().add_class('error')
             return False
@@ -64,6 +59,7 @@ class AuthenticationPage(Adw.Bin):
             passwd = f'{self.pepper.get_text().strip()[:middle]}{self.master_password.get_text().strip()}{self.pepper.get_text().strip()[middle:]}'
             print(ph.verify(self._application.user_data[0].master_password, passwd))
             self.label_error.set_visible(False)
+            self._application.get_active_window().finish_authentication()
         except Exception as error:
             self.label_error.set_label(_('Invalid credentials'))
             self.label_error.set_visible(True)
