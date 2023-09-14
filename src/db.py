@@ -42,7 +42,6 @@ class Query_user_builder:
         self._builder.select_add_field('last_name', 'user', 'last_name')
         self._builder.select_add_field('username', 'user', 'username')
         self._builder.select_add_field('email', 'user', 'email')
-        self._builder.select_add_field('master_password', 'user', 'master_password')
         self._builder.select_add_field('master_password_tip', 'user', 'master_password_tip')
         self._builder.select_add_field('timestamp', 'user', 'timestamp')
         self._builder.select_add_target('user', None)
@@ -66,6 +65,56 @@ class Query_user_builder:
         if len(self._conditions) > 0:
             self._builder.set_where(self._builder.add_cond_v(SqlOperatorType.AND, self._conditions))
         return Password_manager_query(self._builder.get_statement())
+
+# =====================
+# QUERY get master password
+# ====================
+class Query_master_password_builder:
+
+    instance = None
+    _builder: SqlBuilder
+    _conditions: List[float]
+    
+    @staticmethod
+    def new() -> Query_master_password_builder:
+        instance = Query_master_password_builder()
+        instance._conditions = []
+        instance._builder = SqlBuilder.new(
+            stmt_type = SqlStatementType.SELECT,    
+        )
+        instance._builder.select_add_field('id', 'user', 'id')
+        instance._builder.select_add_field('master_password', 'user', 'master_password')
+        instance._builder.select_add_target('user', None)
+        return instance
+
+
+
+    @staticmethod
+    def get(id: int) -> Optional[Password_manager_query]:
+        if id:
+            if not Query_master_password_builder.instance:
+                Query_master_password_builder.instance = Query_master_password_builder.new()
+
+            return Query_master_password_builder.instance._create_query(id)
+
+    def _create_query(self, id: int):
+        self._conditions.append(
+            self._builder.add_cond(
+                SqlOperatorType.EQ,
+                self._builder.add_field_id('id', 'user'),
+                add_expr_value(self._builder, id),
+                0,
+            )
+        )
+        return self._build()
+
+
+    def _build(self) -> Password_manager_query:
+        if len(self._conditions) > 0:
+            self._builder.set_where(self._builder.add_cond_v(SqlOperatorType.AND, self._conditions))
+        return Password_manager_query(self._builder.get_statement())
+
+
 
 
 
@@ -189,9 +238,9 @@ class Database():
         )
         self._connection.statement_execute_non_select(builder.get_statement(), None)
 
-    def query(self, password_manager_query: Password_manager_query) -> Union[List[Db_item], None]:
+
+    def query(self, password_manager_query: Password_manager_query) -> Optional[List[User_db_item]]:
         if not self._connection.is_opened(): return None
-        # print(f'{password_manager_query.statement.to_sql_extended(self._connection, None, StatementSqlFlag.PRETTY)}');
         dm = self._connection.statement_execute_select(password_manager_query.statement, None)
         iter = dm.create_iter()
         itemList = []

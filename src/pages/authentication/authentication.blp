@@ -1,7 +1,17 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $AuthenticationPage : Adw.Bin {
+template $AuthenticationPage : Gtk.Box {
+  hexpand: true;
+  vexpand: true;
+  orientation: vertical;
+  Adw.HeaderBar {
+    styles ['flat']
+    title-widget: Label {
+      styles ['title']
+      label: 'Authentication';
+    };
+  }
   Adw.Clamp {
     hexpand: true;
     vexpand: true;

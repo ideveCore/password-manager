@@ -26,9 +26,10 @@ gi.require_version('Adw', '1')
 from typing import Optional, Union, Any, Dict, List
 from gi.repository import Adw, Gio, Gtk
 from .window import PasswordManagerWindow
-from .pages import WelcomePage, AuthenticationPage
+# from .pages import WelcomePage, AuthenticationPage
 from .define import APP_ID, RES_PATH
-from .application_data import Application_data, User_db_item
+from .application_data import Application_data as data
+from .user import User
 
 
 class PasswordManagerApplication(Adw.Application):
@@ -41,8 +42,7 @@ class PasswordManagerApplication(Adw.Application):
         )
         self.set_resource_base_path(RES_PATH)
 
-        self.data = Application_data().setup()
-        self.user_data: List[User_db_item] = self.data.get_user()
+        User.get()
         self.settings = Gio.Settings(APP_ID)
         self.setup_actions()
 

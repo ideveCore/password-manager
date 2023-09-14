@@ -17,23 +17,24 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-from typing import Optional, Union, Any, Dict, List
-from gi.repository import Adw, Gio, Gtk
-from ...components import RegisterDialog
+from gi.repository import Gtk
 from ...define import RES_PATH
-import argon2
+from ...application_data import Application_data as data
+from ...user import User
+from ...argon2 import Argon2
 
 @Gtk.Template(resource_path=f'{RES_PATH}/pages/authentication/authentication.ui')
-class AuthenticationPage(Adw.Bin):
+class AuthenticationPage(Gtk.Box):
     __gtype_name__ = 'AuthenticationPage'
 
     master_password = Gtk.Template.Child()
     pepper = Gtk.Template.Child()
     label_error = Gtk.Template.Child()
 
-    def __init__(self, **kwargs):
+    def __init__(self, parent, **kwargs):
         super().__init__(**kwargs)
         self._application = Gtk.Application.get_default()
+        self._parent = parent
         self._setup()
     
     def _setup(self):
@@ -41,8 +42,7 @@ class AuthenticationPage(Adw.Bin):
         if pepper_from_settings:
             self.pepper.set_text(pepper_from_settings)
 
-    def _validate_data(self):
-        ph = argon2.PasswordHasher()
+    def _validate_data(self, user_master_password_hash):
         if not self.master_password.get_text().strip():
             self.master_password.get_style_context().add_class('error')
             return False
@@ -54,16 +54,16 @@ class AuthenticationPage(Adw.Bin):
         else:
             self.pepper.get_style_context().remove_class('error')
 
-        try:
-            middle = len(self.pepper.get_text().strip()) // 2
-            passwd = f'{self.pepper.get_text().strip()[:middle]}{self.master_password.get_text().strip()}{self.pepper.get_text().strip()[middle:]}'
-            print(ph.verify(self._application.user_data[0].master_password, passwd))
+        if Argon2.get().verify_password(pepper=self.pepper.get_text().strip(), password_hash=user_master_password_hash, password=self.master_password.get_text().strip()):
             self.label_error.set_visible(False)
-            self._application.get_active_window().finish_authentication()
-        except Exception as error:
+            User.get().data.master_password = self.master_password.get_text().strip()
+            self._parent.navigate('dashboard')
+        else:
             self.label_error.set_label(_('Invalid credentials'))
             self.label_error.set_visible(True)
 
     @Gtk.Template.Callback()
     def _on_submit_user_data(self, _target):
-        self._validate_data()
+        response = data.get().get_user_master_password(id=User.get().data.id)
+        if response:
+            self._validate_data(user_master_password_hash=response)

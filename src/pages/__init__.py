@@ -19,3 +19,4 @@
 
 from .welcome.welcome import WelcomePage
 from .authentication.authentication import AuthenticationPage
+from .dashboard.dashboard import DashboardPage

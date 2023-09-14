@@ -17,22 +17,20 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from typing import Dict, Union, List
 import gi
 gi.require_version('Gda', '6.0')
-from gi.repository import Adw, Gio, Gtk
+from gi.repository import Adw, Gtk
 from .components import PasswordManagerShortcutsWindow
-from .pages import WelcomePage
+from .pages import AuthenticationPage, WelcomePage, DashboardPage
 from .define import PROFILE, RES_PATH
+from .user import User
 
 @Gtk.Template(resource_path=f'{RES_PATH}/window.ui')
 class PasswordManagerWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'PasswordManagerWindow'
 
-    main_leaflet = Gtk.Template.Child()
-    welcome = Gtk.Template.Child()
-    authenticate = Gtk.Template.Child()
-    dashboard = Gtk.Template.Child()
+    container_page = Gtk.Template.Child()
+    pages = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -49,12 +47,19 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
             self.add_css_class('devel')
 
     def _check_users(self):
-        if not self._application.user_data:
+        if not User.get().data:
             print('no has users in database')
-            self.main_leaflet.set_visible_child(self.welcome)
-            # self.main_leaflet.navigate(Adw.NavigationDirection.FORWARD);
+            self.navigate('welcome')
         else:
-            self.main_leaflet.set_visible_child(self.authenticate)
+            self.navigate('authentication')
 
-    def finish_authentication(self):
-        self.main_leaflet.set_visible_child(self.dashboard)
+    def navigate(self, to: str) -> None:
+        if to == 'authentication':
+            self.pages.set_child(AuthenticationPage(self))
+        elif to == 'welcome':
+            self.pages.set_child(WelcomePage(self))
+        elif to == 'dashboard':
+            window = DashboardPage(self)
+            self.pages.set_child(window)
+            window.verify_user()
+

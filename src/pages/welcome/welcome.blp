@@ -1,7 +1,17 @@
 using Gtk 4.0;
 using Adw 1;
 
-template $WelcomePage : Adw.Bin {
+template $WelcomePage : Gtk.Box {
+  hexpand: true;
+  vexpand: true;
+  orientation: vertical;
+  Adw.HeaderBar {
+    styles ['flat']
+    title-widget: Label {
+      styles ['title']
+      label: 'Welcome';
+    };
+  }
   Adw.Clamp {
     orientation: vertical;
     Adw.StatusPage {

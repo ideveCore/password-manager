@@ -7,53 +7,15 @@ template $PasswordManagerWindow : Adw.ApplicationWindow {
   width-request: 300;
   height-request: 500;
   title: _('Password Manager');
-  Adw.Leaflet main_leaflet {
+  Adw.ViewStack container_page {
     vexpand: true;
     hexpand: true;
-    can-navigate-back: true;
-    can-unfold: false;
-    Adw.Leaflet welcome {
-      Gtk.Box {
-        orientation: vertical;
-        Adw.HeaderBar {
-          styles ['flat']
-          centering-policy: strict;
-        }
-        $WelcomePage {}
-      }
-    }
-    Adw.Leaflet authenticate {
-      Gtk.Box {
-        orientation: vertical;
-        Adw.HeaderBar {
-          styles ['flat']
-          title-widget: Label {
-            styles ['title']
-            label: _('Authentication');
-          };
-          centering-policy: strict;
-        }
-        $AuthenticationPage {}
-      }
-    }
-    Adw.Leaflet dashboard {
-      hexpand: true;
-      Gtk.Box {
+    Adw.ViewStackPage {
+      name: 'welcome';
+      child: Adw.Bin pages {
         hexpand: true;
-        orientation: vertical;
-        Adw.HeaderBar {
-          styles ['flat']
-          title-widget: Label {
-            styles ['title']
-            label: _('Authentication');
-          };
-          centering-policy: strict;
-        }
-
-        Gtk.Label {
-          label: 'dashboard';
-        }
-      }
+        vexpand: true;
+      };
     }
   }
 }

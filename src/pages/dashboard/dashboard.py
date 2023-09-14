@@ -1,4 +1,4 @@
-# welcome.py
+# dashboard.py
 #
 # Copyright 2023 Ideve Core
 #
@@ -18,30 +18,24 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 from typing import Optional, Union, Any, Dict, List
-from gi.repository import Adw, Gio, Gtk
-from ...components import RegisterDialog
+from gi.repository import Gtk
+from ...user import User
 from ...define import RES_PATH
 
-@Gtk.Template(resource_path=f'{RES_PATH}/pages/welcome/welcome.ui')
-class WelcomePage(Gtk.Box):
-    __gtype_name__ = 'WelcomePage'
+@Gtk.Template(resource_path=f'{RES_PATH}/pages/dashboard/dashboard.ui')
+class DashboardPage(Gtk.Box):
+    __gtype_name__ = 'DashboardPage'
 
     def __init__(self, parent, **kwargs):
         super().__init__(**kwargs)
+        self._application = Gtk.Application.get_default()
         self._parent = parent
-        self._setup_actions()
 
-    def _setup_actions(self) -> None:
-        group = Gio.SimpleActionGroup.new()
-        open_register_dialog_action = Gio.SimpleAction(
-            name='open-register-dialog'
-        )
-
-        open_register_dialog_action.connect('activate', self._open_regiter_dialog)
-
-        group.add_action(open_register_dialog_action)
-        self.insert_action_group('welcome', group)
-
-    def _open_regiter_dialog(self, action, parameter):
-        dialog = RegisterDialog(self._parent)
-        dialog.present()
+    def verify_user(self):
+        if not User.get().data.master_password:
+            if not User.get().data:
+                self._parent.navigate('welcome')
+            else:
+                self._parent.navigate('authentication')
+        else:
+            print('ok')

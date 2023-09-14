@@ -16,17 +16,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 import math, time, secrets
 from gi.repository import Adw, Gio, GLib, Gtk
-import argon2
+from ...db import Union, User_db_item
+from ...application_data import Application_data as data
+from ...argon2 import Argon2
+from ...user import User
 from ...define import RES_PATH
-from ...db import User_db_item
-from ...application_data import Application_data
 
 @Gtk.Template(resource_path=f'{RES_PATH}/components/register_dialog/register_dialog.ui')
 class RegisterDialog(Adw.Window):
-    __gtype_name__ = 'RegisterDialog'
 
+    __gtype_name__ = 'RegisterDialog'
+    instance: Union[RegisterDialog, None] = None
     avatar = Gtk.Template.Child()
     first_name = Gtk.Template.Child()
     last_name = Gtk.Template.Child()
@@ -41,24 +44,22 @@ class RegisterDialog(Adw.Window):
     pepper = Gtk.Template.Child()
     send = Gtk.Template.Child()
 
-
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent: Adw.ApplicationWindow, *args):
+        super().__init__(*args)
         self._application = Gtk.Application.get_default()
+        self._parent = parent
         self.set_transient_for(self._application.get_active_window())
         self.bar_passwd.add_offset_value("very-weak", 1)
         self.bar_passwd.add_offset_value("weak", 2)
         self.bar_passwd.add_offset_value("moderate", 4)
         self.bar_passwd.add_offset_value("strong", 6)
-        self.pepper.set_text(self._generate_pepper())
+        self.pepper.set_text(Argon2.get().generate_salt())
         self._setup_actions()
 
     def _setup_actions(self):
         group = Gio.SimpleActionGroup()
         helper_action = Gio.SimpleAction(name='helper', parameter_type=GLib.VariantType('s'))
-
         helper_action.connect('activate', self._helper_action)
-
         group.add_action(helper_action)
         self.insert_action_group('register', group)
 
@@ -162,11 +163,7 @@ The main purpose of a pepper is to add an extra layer of security to password st
 
     @Gtk.Template.Callback()
     def _on_update_pepper(self, _target):
-        self.pepper.set_text(self._generate_pepper())
-
-    def _generate_pepper(self):
-        pepper = secrets.token_bytes(8)
-        return pepper.hex()
+        self.pepper.set_text(Argon2.get().generate_salt())
 
     def _save_file_dialog(self):
         self._dialog = Gtk.FileDialog.new()
@@ -183,25 +180,10 @@ The main purpose of a pepper is to add an extra layer of security to password st
             self.send.set_label(_('Register'))
             self.send.set_sensitive(True)
 
-
     def _on_saved_credentials(self, _file, _task):
         result = _file.replace_contents_finish(_task)
         if result:
-            argon2_type = argon2.Type.ID
-            time_cost = 20
-            memory_cost = 131072
-            parallelism = 2
-            output_len = 64
-            ph = argon2.PasswordHasher(
-                time_cost=time_cost,
-                memory_cost=memory_cost,
-                parallelism=parallelism,
-                hash_len=output_len,
-                type=argon2_type
-            )
-            middle = len(self.pepper.get_text().strip()) // 2
-            passwd = f'{self.pepper.get_text().strip()[:middle]}{self.master_password.get_text().strip()}{self.pepper.get_text().strip()[middle:]}'
-            hash = ph.hash(passwd, salt=self._generate_pepper().encode('utf-8'))
+            hash = Argon2.get().hash_password(pepper=self.pepper.get_text().strip(), password=self.master_password.get_text().strip())
             user = User_db_item(
                 id=None,
                 first_name=self.first_name.get_text().strip(),
@@ -213,12 +195,11 @@ The main purpose of a pepper is to add an extra layer of security to password st
                 timestamp=int(time.time()),
             )
 
-            data = Application_data().setup()
-            data.save_user(user)
+            User.get().data = data.get().save_user(user)
             self._application.settings.set_string('pepper', self.pepper.get_text().strip())
-            self._application.get_active_window().finish_authentication()
+            User.get().data.master_password = self.master_password.get_text().strip()
+            self._parent.navigate('dashboard')
             self.close()
-
         else:
             print('Erro in save file')
 
