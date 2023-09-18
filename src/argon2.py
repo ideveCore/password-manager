@@ -20,6 +20,7 @@
 from __future__ import annotations
 import secrets
 from typing import Union
+from gi.repository import Gio, GObject
 import argon2
 
 class Argon2:
@@ -47,9 +48,9 @@ class Argon2:
             if Argon2.ph:
                 hash = Argon2.ph.hash(passwd, salt=Argon2.generate_salt().encode('utf-8'))
                 return hash
-
+            
     @staticmethod
-    def verify_password(pepper: str, password_hash: str, password: str) -> bool:
+    def verify_password(pepper: str, password_hash: str, password: str):
         try:
             middle = len(pepper) // 2
             passwd = f'{pepper[:middle]}{password}{pepper[middle:]}'
@@ -62,6 +63,7 @@ class Argon2:
             print(error)
             return False
 
+        
     @staticmethod
     def generate_salt() -> str:
         salt = secrets.token_bytes(8)

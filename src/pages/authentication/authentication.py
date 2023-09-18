@@ -17,7 +17,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
-from gi.repository import Gtk
+from gi.repository import Gio, Gtk, GObject
 from ...define import RES_PATH
 from ...application_data import Application_data as data
 from ...user import User
@@ -30,6 +30,7 @@ class AuthenticationPage(Gtk.Box):
     master_password = Gtk.Template.Child()
     pepper = Gtk.Template.Child()
     label_error = Gtk.Template.Child()
+    auth_button = Gtk.Template.Child()
 
     def __init__(self, parent, **kwargs):
         super().__init__(**kwargs)
@@ -42,28 +43,45 @@ class AuthenticationPage(Gtk.Box):
         if pepper_from_settings:
             self.pepper.set_text(pepper_from_settings)
 
-    def _validate_data(self, user_master_password_hash):
-        if not self.master_password.get_text().strip():
-            self.master_password.get_style_context().add_class('error')
-            return False
-        else:
-            self.master_password.get_style_context().remove_class('error')
-        if not self.pepper.get_text().strip():
-            self.pepper.get_style_context().add_class('error')
-            return False
-        else:
-            self.pepper.get_style_context().remove_class('error')
+    def _validate_data(self, task, task_data: object, cancellable: Gio.Cancellable, user_data):
+        if task.return_error_if_cancelled():
+            return
+        user_master_password_hash = data.get().get_user_master_password(id=User.get().data.id)
+        if user_master_password_hash:
+            if not self.master_password.get_text().strip():
+                self.master_password.get_style_context().add_class('error')
+                return False
+            else:
+                self.master_password.get_style_context().remove_class('error')
+            if not self.pepper.get_text().strip():
+                self.pepper.get_style_context().add_class('error')
+                return False
+            else:
+                self.pepper.get_style_context().remove_class('error')
 
-        if Argon2.get().verify_password(pepper=self.pepper.get_text().strip(), password_hash=user_master_password_hash, password=self.master_password.get_text().strip()):
-            self.label_error.set_visible(False)
-            User.get().data.master_password = self.master_password.get_text().strip()
-            self._parent.navigate('dashboard')
-        else:
-            self.label_error.set_label(_('Invalid credentials'))
-            self.label_error.set_visible(True)
+            if Argon2.get().verify_password(pepper=self.pepper.get_text().strip(), password_hash=user_master_password_hash, password=self.master_password.get_text().strip()):
+                self.label_error.set_visible(False)
+                User.get().data.master_password = self.master_password.get_text().strip()
+                self._parent.navigate('dashboard')
+            else:
+                self.label_error.set_label(_('Invalid credentials'))
+                self.label_error.get_style_context().add_class('label-error')
+                self.label_error.set_visible(True)
+
 
     @Gtk.Template.Callback()
     def _on_submit_user_data(self, _target):
-        response = data.get().get_user_master_password(id=User.get().data.id)
-        if response:
-            self._validate_data(user_master_password_hash=response)
+        spinner = Gtk.Spinner.new()
+        spinner.set_spinning(True)
+        self.auth_button.set_sensitive(False)
+        self.auth_button.set_child(spinner)
+        self.label_error.get_style_context().remove_class('label-error')
+
+        task = Gio.Task.new(self, None, self._on_verify_done, None)
+        task.set_return_on_cancel(True)
+        task.run_in_thread(self._validate_data)
+
+    def _on_verify_done(self, source_widget:GObject.Object, result:Gio.AsyncResult, user_data:GObject.GPointer):
+        self.auth_button.set_label(_('Authentication'))
+        self.auth_button.set_sensitive(True)
+

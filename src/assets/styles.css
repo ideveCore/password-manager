@@ -26,3 +26,28 @@ levelbar block.strong {
   background-color: @green_4;
 }
 
+.label-error {
+  animation: 200ms linear 2 normal both  breathing;
+  /* animation-name: breathing; */
+  /* animation-duration: 200ms; */
+  /* animation-timing-function: ease-out; */
+  /* animation-iteration-count: 2; */
+  /* animation-direction: normal; */
+  /* animation-delay: 0s; */
+  /* animation-fill-mode: none; */
+  /* animation-play-state: running; */
+}
+
+@keyframes breathing {
+  0% {
+    transform: translateX(-2em);
+  }
+
+  50% {
+    transform: translateX(2em);
+  }
+
+  100% {
+    transform: translateX(0em);
+  }
+}
