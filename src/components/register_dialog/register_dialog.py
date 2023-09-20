@@ -22,7 +22,7 @@ import math, time
 from gi.repository import Adw, Gio, GLib, Gtk
 from ...db import Union, User_db_item
 from ...application_data import Application_data as data
-from ...argon2 import Argon2PasswordHasher, GenerateSalt
+from ...password_hasher import Argon2PasswordHasher, GenerateSalt
 from ...user import User
 from ...define import RES_PATH
 
