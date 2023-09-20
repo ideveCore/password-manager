@@ -49,11 +49,14 @@ password_manager_sources = [
   'application_data.py',
   'main.py',
   'user.py',
-  'argon2.py',
+  'password_hasher.py',
   'window.py',
+  # tests
+  'tests/password_hasher_test.py',
 ]
 
 install_subdir('pages', install_dir: moduledir)
 install_subdir('components', install_dir: moduledir)
+install_subdir('tests', install_dir: moduledir)
 install_data(password_manager_sources, install_dir: moduledir)
 subdir('assets/icons')

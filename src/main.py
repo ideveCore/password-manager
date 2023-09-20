@@ -23,14 +23,16 @@ import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from typing import Optional, Union, Any, Dict, List
 from gi.repository import Adw, Gio, Gtk
 from .window import PasswordManagerWindow
-# from .pages import WelcomePage, AuthenticationPage
-from .define import APP_ID, RES_PATH
-from .application_data import Application_data as data
+from .define import APP_ID, RES_PATH, PROFILE
 from .user import User
+from . import tests
 
+
+# Run python unit tests
+if PROFILE == 'Devel':
+    tests.run()
 
 class PasswordManagerApplication(Adw.Application):
     """The main application singleton class."""
@@ -45,6 +47,7 @@ class PasswordManagerApplication(Adw.Application):
         User.get()
         self.settings = Gio.Settings(APP_ID)
         self.setup_actions()
+        # RunTests()
 
     def do_activate(self):
         """Called when the application is activated.
