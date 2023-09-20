@@ -21,7 +21,7 @@ from gi.repository import Gio, Gtk, GObject
 from ...define import RES_PATH
 from ...application_data import Application_data as data
 from ...user import User
-from ...argon2 import Argon2
+from ...password_hasher import Argon2PasswordHasher
 
 @Gtk.Template(resource_path=f'{RES_PATH}/pages/authentication/authentication.ui')
 class AuthenticationPage(Gtk.Box):
@@ -59,7 +59,7 @@ class AuthenticationPage(Gtk.Box):
             else:
                 self.pepper.get_style_context().remove_class('error')
 
-            if Argon2.get().verify_password(pepper=self.pepper.get_text().strip(), password_hash=user_master_password_hash, password=self.master_password.get_text().strip()):
+            if Argon2PasswordHasher().verify_password(pepper=self.pepper.get_text().strip(),  password=self.master_password.get_text().strip(), hash=user_master_password_hash):
                 self.label_error.set_visible(False)
                 User.get().data.master_password = self.master_password.get_text().strip()
                 self._parent.navigate('dashboard')
@@ -67,7 +67,6 @@ class AuthenticationPage(Gtk.Box):
                 self.label_error.set_label(_('Invalid credentials'))
                 self.label_error.get_style_context().add_class('label-error')
                 self.label_error.set_visible(True)
-
 
     @Gtk.Template.Callback()
     def _on_submit_user_data(self, _target):

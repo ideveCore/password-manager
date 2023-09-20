@@ -16,18 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+
 from __future__ import annotations
-import math, time, secrets
+import math, time
 from gi.repository import Adw, Gio, GLib, Gtk
 from ...db import Union, User_db_item
 from ...application_data import Application_data as data
-from ...argon2 import Argon2
+from ...argon2 import Argon2PasswordHasher, GenerateSalt
 from ...user import User
 from ...define import RES_PATH
 
 @Gtk.Template(resource_path=f'{RES_PATH}/components/register_dialog/register_dialog.ui')
 class RegisterDialog(Adw.Window):
-
     __gtype_name__ = 'RegisterDialog'
     instance: Union[RegisterDialog, None] = None
     avatar = Gtk.Template.Child()
@@ -53,7 +53,7 @@ class RegisterDialog(Adw.Window):
         self.bar_passwd.add_offset_value("weak", 2)
         self.bar_passwd.add_offset_value("moderate", 4)
         self.bar_passwd.add_offset_value("strong", 6)
-        self.pepper.set_text(Argon2.get().generate_salt())
+        self.pepper.set_text(GenerateSalt(8).salt)
         self._setup_actions()
 
     def _setup_actions(self):
@@ -163,7 +163,7 @@ The main purpose of a pepper is to add an extra layer of security to password st
 
     @Gtk.Template.Callback()
     def _on_update_pepper(self, _target):
-        self.pepper.set_text(Argon2.get().generate_salt())
+        self.pepper.set_text(GenerateSalt(8).salt)
 
     def _save_file_dialog(self):
         self._dialog = Gtk.FileDialog.new()
@@ -183,26 +183,34 @@ The main purpose of a pepper is to add an extra layer of security to password st
     def _on_saved_credentials(self, _file, _task):
         result = _file.replace_contents_finish(_task)
         if result:
-            hash = Argon2.get().hash_password(pepper=self.pepper.get_text().strip(), password=self.master_password.get_text().strip())
-            user = User_db_item(
-                id=None,
-                first_name=self.first_name.get_text().strip(),
-                last_name=self.last_name.get_text().strip(),
-                username=self.username.get_text().strip(),
-                email=self.email.get_text().strip(),
-                master_password=hash,
-                master_password_tip=self.tip.get_text().strip(),
-                timestamp=int(time.time()),
-            )
-
-            User.get().data = data.get().save_user(user)
-            self._application.settings.set_string('pepper', self.pepper.get_text().strip())
-            User.get().data.master_password = self.master_password.get_text().strip()
-            self._parent.navigate('dashboard')
-            self.close()
+            task = Gio.Task.new(self, None, self._save_user_done, None)
+            task.set_return_on_cancel(True)
+            task.run_in_thread(self._save_user)
         else:
             print('Erro in save file')
 
+    def _save_user(self, task, task_data: object, cancellable: Gio.Cancellable, user_data):
+        if task.return_error_if_cancelled():
+            return
+        hash = Argon2PasswordHasher().hash_password(pepper=self.pepper.get_text().strip(), password=self.master_password.get_text().strip())
+        user = User_db_item(
+            id=None,
+            first_name=self.first_name.get_text().strip(),
+            last_name=self.last_name.get_text().strip(),
+            username=self.username.get_text().strip(),
+            email=self.email.get_text().strip(),
+            master_password=hash,
+            master_password_tip=self.tip.get_text().strip(),
+            timestamp=int(time.time()),
+        )
+
+        User.get().data = data.get().save_user(user)
+        self._application.settings.set_string('pepper', self.pepper.get_text().strip())
+        User.get().data.master_password = self.master_password.get_text().strip()
+
+    def _save_user_done(self, source_widget:GObject.Object, result:Gio.AsyncResult, user_data:GObject.GPointer):
         self.send.set_label(_('Register'))
         self.send.set_sensitive(True)
+        self.close()
+        self._parent.navigate('dashboard')
 
