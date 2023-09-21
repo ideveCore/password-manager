@@ -31,8 +31,8 @@ from . import tests
 
 
 # Run python unit tests
-if PROFILE == 'Devel':
-    tests.run()
+# if PROFILE == 'Devel':
+#     tests.run()
 
 class PasswordManagerApplication(Adw.Application):
     """The main application singleton class."""

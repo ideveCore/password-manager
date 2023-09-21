@@ -29,14 +29,23 @@ from .user import User
 class PasswordManagerWindow(Adw.ApplicationWindow):
     __gtype_name__ = 'PasswordManagerWindow'
 
-    container_page = Gtk.Template.Child()
-    pages = Gtk.Template.Child()
+    # container_page = Gtk.Template.Child()
+    navigation_view = Gtk.Template.Child()
+    welcome_page = Gtk.Template.Child()
+    authentication_page = Gtk.Template.Child()
+    dashboard_page = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setup()
         self._application = Gtk.Application.get_default()
-        self._check_users()
+        self.__set_pages()
+        self.navigation_view.push(self.dashboard_page)
+        # self._check_users()
+
+    def __set_pages(self):
+        self.welcome_page.set_child(WelcomePage(self))
+        self.authentication_page.set_child(AuthenticationPage(self))
 
     def setup(self):
         # set shortcuts window
@@ -55,11 +64,12 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
 
     def navigate(self, to: str) -> None:
         if to == 'authentication':
-            self.pages.set_child(AuthenticationPage(self))
+            self.navigation_view.push(self.authentication_page)
         elif to == 'welcome':
-            self.pages.set_child(WelcomePage(self))
+            self.navigation_view.push(self.welcome_page)
         elif to == 'dashboard':
-            window = DashboardPage(self)
-            self.pages.set_child(window)
-            window.verify_user()
+            # window = DashboardPage(self)
+            self.navigation_view.push(self.dashboard_page)
+            # self.pages.set_child(window)
+            # window.verify_user()
 

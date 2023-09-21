@@ -1,29 +1,65 @@
 using Gtk 4.0;
 using Adw 1;
+using GObject 2.0;
 
 template $DashboardPage : Gtk.Box {
-  hexpand: true;
-  vexpand: true;
-  orientation: vertical;
-  Adw.HeaderBar {
-    styles ['flat']
-    title-widget: Label {
-      styles ['title']
-      label: 'Dashboard';
-    };
-  }
-  Adw.Clamp {
-    hexpand: true;
-    vexpand: true;
-    orientation: vertical;
-    Gtk.Box {
-      orientation: vertical;
-      halign: center;
-      valign: center;
-      Gtk.Label {
-        label: 'Dashboard';
-      }
+  width-request: 360;
+  height-request: 200;
+  Adw.Breakpoint {
+    condition ("max-width: 400sp")
+    setters {
+      split_view.collapsed: true;
+      button.visible: true;
     }
+  }
+  Adw.NavigationSplitView split_view {
+    hexpand: true;
+    sidebar: Adw.NavigationPage {
+      title: "Sidebar";
+      tag: "sidebar";
+      child: Adw.ToolbarView {
+
+        [top]
+        Adw.HeaderBar {
+          show-title: false;
+        }
+
+        content: Adw.StatusPage {
+          title: _("Sidebar");
+
+          Button button {
+            visible: false;
+            halign: center;
+            can-shrink: true;
+            label: _("Open Content");
+            action-name: "navigation.push";
+            action-target: "'content'";
+            styles ["pill"]
+          }
+        };
+      };
+    };
+
+    content: Adw.NavigationPage {
+      title: "Content";
+      tag: "content";
+      child: Adw.ToolbarView {
+
+        [top]
+        Adw.HeaderBar {
+          show-title: false;
+        }
+
+        content: Adw.StatusPage {
+          title: _("Content");
+
+          LinkButton {
+            label: "API Reference";
+            uri: "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.NavigationSplitView.html";
+          }
+        };
+      };
+    };
   }
 }
 

@@ -51,3 +51,7 @@ levelbar block.strong {
     transform: translateX(0em);
   }
 }
+
+.red {
+  background-color: red;
+}

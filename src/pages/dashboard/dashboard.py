@@ -18,7 +18,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 from __future__ import annotations
 from typing import Optional, Union, Any, Dict, List
-from gi.repository import Gtk
+from gi.repository import Adw, Gtk
 from ...user import User
 from ...define import RES_PATH
 
