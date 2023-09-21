@@ -33,7 +33,7 @@ class GenerateSalt:
         return self.salt.encode('utf-8')
 
 
-class Error(Exception):
+class Error(ValueError):
     def __init__(self, message) -> None:
         super().__init__(message)
 
@@ -61,7 +61,7 @@ class Argon2PasswordHasher(PasswordHasherStartegy):
             passwd = f'{pepper[:middle]}{password}{pepper[middle:]}'
             return self.__password_hasher.hash(passwd, salt=GenerateSalt(8).encode())
         else:
-            raise Error('Pepper or Password is invalid')
+            raise ValueError('Pepper or Password is invalid')
 
     def verify_password(self, pepper: str, password: str, hash: str) -> Union[bool, Error]:
         try:
@@ -70,6 +70,5 @@ class Argon2PasswordHasher(PasswordHasherStartegy):
             self.__password_hasher.verify(hash, passwd)
             return True
         except Exception as error:
-            print(error)
-            return Error(error)
+            raise Error(error)
 

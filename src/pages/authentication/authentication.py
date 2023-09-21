@@ -59,11 +59,12 @@ class AuthenticationPage(Gtk.Box):
             else:
                 self.pepper.get_style_context().remove_class('error')
 
-            if Argon2PasswordHasher().verify_password(pepper=self.pepper.get_text().strip(),  password=self.master_password.get_text().strip(), hash=user_master_password_hash):
+            try:
+                Argon2PasswordHasher().verify_password(pepper=self.pepper.get_text().strip(),  password=self.master_password.get_text().strip(), hash=user_master_password_hash)
                 self.label_error.set_visible(False)
                 User.get().data.master_password = self.master_password.get_text().strip()
                 self._parent.navigate('dashboard')
-            else:
+            except Exception as error:
                 self.label_error.set_label(_('Invalid credentials'))
                 self.label_error.get_style_context().add_class('label-error')
                 self.label_error.set_visible(True)
