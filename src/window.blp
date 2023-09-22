@@ -7,23 +7,8 @@ template $PasswordManagerWindow : Adw.ApplicationWindow {
   width-request: 300;
   height-request: 500;
   title: _('Password Manager');
-  Adw.Breakpoint {
-    condition ("max-width: 700sp")
-    setters {
-      password.visible: false;
-      container.halign: center;
-    }
-  }
 
-  Adw.Breakpoint {
-    condition ("max-width: 500sp")
-    setters {
-      split_view.collapsed: true;
-      button.visible: true;
-      password.visible: false;
-      container.halign: center;
-    }
-  }
+
   Box {
     vexpand: true;
     hexpand: true;
@@ -39,73 +24,7 @@ template $PasswordManagerWindow : Adw.ApplicationWindow {
       Adw.NavigationPage dashboard_page {
         title: _("Dashboard Page");
         can-pop: false;
-        Adw.NavigationSplitView split_view {
-          hexpand: true;
-          sidebar: Adw.NavigationPage {
-            title: "Sidebar";
-            tag: "sidebar";
-            width-request: 300;
-            child: Adw.ToolbarView {
-
-              [top]
-              Adw.HeaderBar {
-                show-title: false;
-              }
-
-              content: Adw.StatusPage {
-                title: _("Sidebar");
-
-                Button button {
-                  visible: false;
-                  halign: center;
-                  can-shrink: true;
-                  label: _("Open Content");
-                  action-name: "navigation.push";
-                  action-target: "'content'";
-                  styles ["pill"]
-                }
-              };
-            };
-          };
-          content: Adw.NavigationPage {
-            title: "Content";
-            tag: "content";
-            child: Adw.ToolbarView {
-
-              [top]
-              Adw.HeaderBar {
-                show-title: false;
-              }
-
-              content:  Gtk.Box container {
-                hexpand: true;
-                Gtk.Box passwords {
-                  hexpand: true;
-                  Adw.StatusPage {
-                    title: _("Content");
-
-                    LinkButton {
-                      label: "API Reference";
-                      uri: "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.NavigationSplitView.html";
-                    }
-                  }
-                }
-                Gtk.Box password {
-                  styles ['red']
-                  hexpand: true;
-                  Adw.StatusPage {
-                    title: _("Content2");
-
-                    LinkButton {
-                      label: "API Reference";
-                      uri: "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.NavigationSplitView.html";
-                    }
-                  }
-                }
-              };
-            };
-          };
-        }
+        
       }
     }
   }

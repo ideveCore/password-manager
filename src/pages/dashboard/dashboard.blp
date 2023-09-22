@@ -3,60 +3,114 @@ using Adw 1;
 using GObject 2.0;
 
 template $DashboardPage : Gtk.Box {
-  width-request: 360;
-  height-request: 200;
-  Adw.Breakpoint {
-    condition ("max-width: 400sp")
-    setters {
-      split_view.collapsed: true;
-      button.visible: true;
+  orientation: vertical;
+  Adw.BreakpointBin {
+    hexpand: true;
+    vexpand: true;
+    width-request: 350;
+    height-request: 550;
+    Adw.Breakpoint {
+      condition ("max-width: 600sp")
+      setters {
+        split_view.collapsed: true;
+        split_view_passwd.collapsed: false;
+        button.visible: false;
+      }
+    }
+    
+    Adw.Breakpoint {
+      condition ("max-width: 500sp")
+      setters {
+        split_view.collapsed: true;
+        split_view_passwd.collapsed: true;
+        button.visible: true;
+      }
+    }
+    child: content;
+  }
+}
+
+Adw.ToolbarView content {
+  top-bar-style: raised;
+  hexpand: true;
+  [top]
+  Adw.HeaderBar {
+    [start]
+    ToggleButton show_sidebar_button {
+      icon-name: "dock-left";
+      tooltip-text: _("Toggle Sidebar");
+      active: bind split_view.show-sidebar;
+      visible: bind start_toggle.active;
+    }
+
+    [end]
+    ToggleButton {
+      icon-name: "dock-right";
+      tooltip-text: _("Toggle Sidebar");
+      active: bind show_sidebar_button.active;
+      visible: bind end_toggle.active;
     }
   }
-  Adw.NavigationSplitView split_view {
-    hexpand: true;
-    sidebar: Adw.NavigationPage {
-      title: "Sidebar";
-      tag: "sidebar";
-      child: Adw.ToolbarView {
+  Adw.OverlaySplitView split_view {
+    show-sidebar: bind show_sidebar_button.active;
 
-        [top]
-        Adw.HeaderBar {
-          show-title: false;
+    sidebar: Adw.StatusPage {
+      title: _("Sidebar");
+
+     child: Box {
+        orientation: vertical;
+        halign: center;
+        spacing: 18;
+
+        ToggleButton start_toggle {
+          label: _("Start");
+          can-shrink: true;
+          active: true;
+          styles ["pill"]
         }
 
-        content: Adw.StatusPage {
-          title: _("Sidebar");
-
-          Button button {
-            visible: false;
-            halign: center;
-            can-shrink: true;
-            label: _("Open Content");
-            action-name: "navigation.push";
-            action-target: "'content'";
-            styles ["pill"]
-          }
-        };
+        ToggleButton end_toggle {
+          label: _("End");
+          can-shrink: true;
+          group: start_toggle;
+          styles ["pill"]
+        }
       };
     };
 
-    content: Adw.NavigationPage {
-      title: "Content";
-      tag: "content";
-      child: Adw.ToolbarView {
+    content: Adw.NavigationSplitView split_view_passwd {
+      sidebar: Adw.NavigationPage {
+        title: "Sidebar";
+        tag: "sidebar";
+        child: Adw.ToolbarView {
+          content: Adw.StatusPage {
+            title: _("Sidebar");
 
-        [top]
-        Adw.HeaderBar {
-          show-title: false;
-        }
+            Button button {
+              visible: false;
+              halign: center;
+              can-shrink: true;
+              label: _("Open Content");
+              action-name: "navigation.push";
+              action-target: "'content'";
+              styles ["pill"]
+            }
+          };
+        };
+      };
 
-        content: Adw.StatusPage {
-          title: _("Content");
+      content: Adw.NavigationPage {
+        title: "Content";
+        tag: "content";
+        child: Adw.ToolbarView {
+          content: Adw.StatusPage {
+            title: _("Content");
 
-          LinkButton {
-            label: "API Reference";
-            uri: "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.NavigationSplitView.html";
-          }
+            LinkButton {
+              label: "API Reference";
+              uri: "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.4/class.NavigationSplitView.html";
+            }
+          };
         };
       };
     };

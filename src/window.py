@@ -46,6 +46,7 @@ class PasswordManagerWindow(Adw.ApplicationWindow):
     def __set_pages(self):
         self.welcome_page.set_child(WelcomePage(self))
         self.authentication_page.set_child(AuthenticationPage(self))
+        self.dashboard_page.set_child(DashboardPage(self))
 
     def setup(self):
         # set shortcuts window
