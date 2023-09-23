@@ -80,48 +80,15 @@ Adw.ToolbarView content {
             }
           }
         }
-        Adw.ExpanderRow {
-          title: _('Types');
-          [prefix]
-          Gtk.Box {
-            Gtk.Image {
-              icon-name: 'edit-tag-symbolic';
-            }
-          }
-
-          Adw.ActionRow {
-            title: _('Credential');
-          }
-          Adw.ActionRow {
-            title: _('Card');
-          }
-          Adw.ActionRow {
-            title: _('Indenty');
-          }
-          Adw.ActionRow {
-            title: _('Secury note');
-          }
-        }
-        Adw.ExpanderRow {
+        Adw.ActionRow {
           title: _('Folders');
           [prefix]
           Gtk.Box {
+            margin-start: 2;
+            margin-end: 2;
             Gtk.Image {
-              icon-name: 'folder-open-symbolic';
+              icon-name: 'grid-filled-symbolic';
             }
-          }
-          [suffix]
-          Gtk.Button {
-            valign: center;
-            halign: center;
-            icon-name: 'ymuse-add-symbolic';
-          }
-
-          Adw.ActionRow {
-            title: 'Ideve Core';
-          }
-          Adw.ActionRow {
-            title: 'GitHub accounts';
           }
         }
       }
